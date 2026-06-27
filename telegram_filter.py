@@ -6,9 +6,11 @@ Listens to a source group and forwards matching messages to a target group.
 import json
 import logging
 import asyncio
-from datetime import datetime
+import re
 from telethon import TelegramClient, events
 from telethon.tl.types import MessageMediaPhoto, MessageMediaDocument
+
+LINK_PATTERN = re.compile(r"(https?://|www\.|t\.me/)\S+", re.IGNORECASE)
 
 CONFIG_FILE = "telegram_config.json"
 LOG_FILE = "filter_log.txt"
@@ -29,17 +31,38 @@ def load_config():
         return json.load(f)
 
 
-def contains_keyword(text: str, keywords: list[str]) -> list[str]:
+def get_group_settings(config: dict, chat_id: int) -> dict:
+    """Merge global settings with per-group overrides."""
+    base = {
+        "keywords":     config.get("keywords", []),
+        "blocked_users": config.get("blocked_users", []),
+        "allowed_users": config.get("allowed_users", []),
+        "block_links":  config.get("block_links", False),
+        "strip_links":  config.get("strip_links", False),
+        "allow_media":  config.get("allow_media", False),
+        "forward_mode": config.get("forward_mode", "copy"),
+    }
+    override = config.get("group_settings", {}).get(str(chat_id), {})
+    base.update(override)
+    return base
+
+
+def remove_links(text: str) -> str:
+    cleaned = LINK_PATTERN.sub("", text)
+    return re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+
+
+def contains_keyword(text: str, keywords: list) -> list:
     if not keywords:
         return ["(tat ca)"]
     text_lower = text.lower()
     return [kw for kw in keywords if kw.lower() in text_lower]
 
 
-def is_blocked_user(sender_username: str | None, blocked: list[str]) -> bool:
-    if not sender_username or not blocked:
+def is_blocked_user(username: str | None, blocked: list) -> bool:
+    if not username or not blocked:
         return False
-    return sender_username.lower() in [b.lower() for b in blocked]
+    return username.lower() in [b.lower() for b in blocked]
 
 
 def print_header():
@@ -51,12 +74,9 @@ def print_header():
 async def main():
     config = load_config()
 
-    source_id = config["source_chat_id"]
+    source_ids = config.get("source_chat_ids") or [config["source_chat_id"]]
     target_id = config["target_chat_id"]
-    keywords = config.get("keywords", [])
-    blocked = config.get("blocked_users", [])
-    allow_media = config.get("allow_media", False)
-    forward_mode = config.get("forward_mode", "copy")
+    group_settings = config.get("group_settings", {})
 
     client = TelegramClient("session", config["api_id"], config["api_hash"])
     await client.start(phone=config["phone"])
@@ -64,62 +84,80 @@ async def main():
     print_header()
     me = await client.get_me()
     print(f"\n  Da dang nhap: {me.first_name} (@{me.username})")
-    print(f"  Nghe tu chat : {source_id}")
-    print(f"  Gui vao chat : {target_id}")
-    print(f"  Keywords     : {keywords if keywords else '(tat ca tin nhan)'}")
-    print(f"  Cho phep media: {allow_media}")
-    print(f"  Che do forward: {forward_mode}")
+    print(f"  Nghe tu     : {len(source_ids)} nhom")
+    print(f"  Gui vao     : {target_id}")
+    if group_settings:
+        print(f"  Cai dat rieng: {list(group_settings.keys())}")
     print("\n  Bot dang chay - san sang loc tin nhan...\n")
     print("=" * 70 + "\n")
 
-    @client.on(events.NewMessage(chats=source_id))
+    @client.on(events.NewMessage(chats=source_ids))
     async def handler(event):
         msg = event.message
         text = msg.text or ""
-        sender = await msg.get_sender()
+        chat_id = event.chat_id
+        gs = get_group_settings(config, chat_id)
 
+        sender = await msg.get_sender()
         sender_username = getattr(sender, "username", None)
-        sender_name = getattr(sender, "first_name", "Unknown")
+        sender_name = (
+            getattr(sender, "first_name", None)
+            or getattr(sender, "title", None)
+            or "Unknown"
+        )
         if getattr(sender, "last_name", None):
             sender_name += f" {sender.last_name}"
 
-        # Filter 1: blocked users
-        if is_blocked_user(sender_username, blocked):
-            logger.info(f"  SKIP (user bi chan): {sender_name}")
+        # Filter: blocked users
+        if is_blocked_user(sender_username, gs["blocked_users"]):
+            logger.info(f"  SKIP (user bi chan): {sender_name} | chat={chat_id}")
             return
 
-        # Filter 2: media-only messages when media not allowed
-        has_media = isinstance(msg.media, (MessageMediaPhoto, MessageMediaDocument))
-        if has_media and not allow_media:
-            if not text:
-                logger.info(f"  SKIP (chi co media): {sender_name}")
-                return
+        # Filter: allowed users whitelist
+        if gs["allowed_users"] and sender_username and sender_username.lower() not in [a.lower() for a in gs["allowed_users"]]:
+            logger.info(f"  SKIP (khong trong whitelist): {sender_name} | chat={chat_id}")
+            return
 
-        # Filter 3: keyword check (text messages only checked against text)
-        matched = contains_keyword(text, keywords)
-        if not matched and keywords:
+        # Filter: media-only when not allowed
+        has_media = isinstance(msg.media, (MessageMediaPhoto, MessageMediaDocument))
+        if has_media and not gs["allow_media"] and not text:
+            logger.info(f"  SKIP (chi co media): {sender_name} | chat={chat_id}")
+            return
+
+        # Filter: keywords
+        matched = contains_keyword(text, gs["keywords"])
+        if not matched and gs["keywords"]:
             short = (text[:60] + "...") if len(text) > 60 else text
-            print(f"  SKIP  | Tu: {sender_name}")
+            print(f"  SKIP  | [{chat_id}] {sender_name}")
             print(f"         | Ly do: Khong co keyword")
             print(f"         | Tin  : {short}\n")
             return
 
-        # Forward the message
+        # Filter: block links (bỏ qua nếu đã khớp keyword)
+        has_link = bool(LINK_PATTERN.search(text))
+        keyword_matched = bool(gs["keywords"]) and matched != ["(tat ca)"]
+        if has_link and gs["block_links"] and not keyword_matched:
+            logger.info(f"  SKIP (co link, khong co keyword): {sender_name} | chat={chat_id}")
+            return
+        if has_link and gs["strip_links"]:
+            text = remove_links(text)
+
+        # Forward
         try:
-            if forward_mode == "forward":
+            if gs["forward_mode"] == "forward":
                 await client.forward_messages(target_id, msg)
             else:
                 caption = f"[Tu: {sender_name}]\n{text}" if text else f"[Tu: {sender_name}]"
-                if has_media and allow_media:
+                if has_media and gs["allow_media"]:
                     await client.send_file(target_id, msg.media, caption=caption)
                 else:
                     await client.send_message(target_id, caption)
 
             short = (text[:60] + "...") if len(text) > 60 else text
-            print(f"  OK    | Tu: {sender_name}")
+            print(f"  OK    | [{chat_id}] {sender_name}")
             print(f"         | Keyword: {', '.join(matched)}")
             print(f"         | Tin  : {short}\n")
-            logger.info(f"FORWARDED | {sender_name} | keywords={matched}")
+            logger.info(f"FORWARDED | chat={chat_id} | {sender_name} | keywords={matched}")
 
         except Exception as e:
             logger.error(f"LOI khi forward: {e}")
