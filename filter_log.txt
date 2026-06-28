@@ -52,3 +52,67 @@
 2026-06-27 23:26:25,408 Disconnection from 91.108.56.152:443/TcpFull complete!
 2026-06-27 23:26:27,503 Connecting to 91.108.56.152:443/TcpFull...
 2026-06-27 23:26:27,610 Connection to 91.108.56.152:443/TcpFull complete!
+2026-06-27 23:31:37,242 Got difference for channel 1762560336 updates
+2026-06-27 23:36:47,444 FORWARDED | chat=-1003000550348 | 🇻🇳Louis - Nguyên Ka | keywords=['(tat ca)']
+2026-06-27 23:39:00,792 FORWARDED | chat=-1002087165846 | Vua Soi Kèo Official Channel | keywords=['rung']
+2026-06-27 23:39:07,528 Got difference for channel 1924180848 updates
+2026-06-27 23:40:29,097 Got difference for channel 1924180848 updates
+2026-06-27 23:42:00,611 Got difference for channel 2468021217 updates
+2026-06-27 23:42:29,091 Got difference for channel 2468021217 updates
+2026-06-27 23:43:29,257 Got difference for channel 2261648821 updates
+2026-06-27 23:48:18,209 Got difference for channel 1924180848 updates
+2026-06-27 23:51:00,580 Got difference for channel 2049786323 updates
+2026-06-27 23:51:48,156 Got difference for channel 1924180848 updates
+2026-06-27 23:52:28,839 Got difference for account updates
+2026-06-27 23:53:41,325 Got difference for channel 1924180848 updates
+2026-06-27 23:55:00,335 FORWARDED | chat=-1002155496536 | NTT | keywords=['(tat ca)']
+2026-06-27 23:56:28,014 Got difference for channel 2305757674 updates
+2026-06-27 23:57:00,619 Got difference for channel 2046947097 updates
+2026-06-27 23:57:29,414 Got difference for channel 2468021217 updates
+2026-06-27 23:58:11,939 Got difference for channel 2305757674 updates
+2026-06-27 23:58:29,201 Got difference for channel 2046947097 updates
+2026-06-28 00:00:10,530 Got difference for channel 2124389331 updates
+2026-06-28 00:00:10,727 Got difference for channel 2049786323 updates
+2026-06-28 00:00:10,864 Got difference for channel 1924180848 updates
+2026-06-28 00:00:10,989 Got difference for channel 2024164597 updates
+2026-06-28 00:02:30,288 Got difference for channel 2049786323 updates
+2026-06-28 00:05:44,502 FORWARDED | chat=-1002087165846 | Vua Soi Kèo Official Channel | keywords=['kèo']
+2026-06-28 00:08:21,896 Got difference for channel 2049793798 updates
+2026-06-28 00:09:01,828 Got difference for channel 1552258673 updates
+2026-06-28 00:09:17,383 Got difference for channel 1924180848 updates
+2026-06-28 00:10:29,288 Got difference for channel 2468021217 updates
+2026-06-28 00:13:29,840 Got difference for channel 2468021217 updates
+2026-06-28 00:13:34,645 Got difference for channel 2065721184 updates
+2026-06-28 00:15:23,665 Got difference for channel 1924180848 updates
+2026-06-28 00:17:29,478 Got difference for channel 1924180848 updates
+2026-06-28 00:18:45,203 Got difference for channel 1924180848 updates
+2026-06-28 00:19:52,625 Got difference for channel 1924180848 updates
+2026-06-28 00:21:43,084 Got difference for channel 2468021217 updates
+2026-06-28 00:22:05,604 FORWARDED | chat=-1002087165846 | Vua Soi Kèo Official Channel | keywords=['rung']
+2026-06-28 00:22:05,921 Got difference for channel 1924180848 updates
+2026-06-28 00:23:03,570 Got difference for channel 2468021217 updates
+2026-06-28 00:23:13,779 Got difference for channel 1924180848 updates
+2026-06-28 00:25:01,691 Got difference for channel 2468021217 updates
+2026-06-28 00:28:20,758 FORWARDED | chat=-1002155496536 | NTT | keywords=['(tat ca)']
+2026-06-28 00:28:26,630 FORWARDED | chat=-1002155496536 | NTT | keywords=['(tat ca)']
+2026-06-28 00:29:56,502 Got difference for channel 2468021217 updates
+2026-06-28 00:31:08,179 FORWARDED | chat=-1002087165846 | Vua Soi Kèo Official Channel | keywords=['kèo', 'FT']
+2026-06-28 00:31:12,191 FORWARDED | chat=-1002087165846 | Vua Soi Kèo Official Channel | keywords=['kèo']
+2026-06-28 00:31:17,852 Got difference for channel 1924180848 updates
+2026-06-28 00:33:34,407 Got difference for channel 2468021217 updates
+2026-06-28 00:37:29,391 Got difference for account updates
+2026-06-28 00:38:09,270 FORWARDED | chat=-1002087165846 | Vua Soi Kèo Official Channel | keywords=['kèo', 'tài', 'FT']
+2026-06-28 00:38:18,200 Got difference for channel 1924180848 updates
+2026-06-28 00:38:43,947 FORWARDED | chat=-1002087165846 | Vua Soi Kèo Official Channel | keywords=['kèo', 'tài', 'FT']
+2026-06-28 00:40:23,592 Got difference for channel 1924180848 updates
+2026-06-28 00:41:58,251 Got difference for channel 1924180848 updates
+2026-06-28 00:43:12,330 Got difference for channel 2305757674 updates
+2026-06-28 00:43:50,538 Got difference for channel 1924180848 updates
+2026-06-28 00:44:18,453 FORWARDED | chat=-1002087165846 | Vua Soi Kèo Official Channel | keywords=['kèo']
+2026-06-28 00:45:10,374 Got difference for channel 2046947097 updates
+2026-06-28 00:45:13,879 Got difference for channel 2065721184 updates
+2026-06-28 00:45:20,510 Got difference for channel 2158990100 updates
+2026-06-28 00:47:21,989 Got difference for channel 2305757674 updates
+2026-06-28 00:48:34,570 Got difference for channel 2468021217 updates
+2026-06-28 00:48:45,757 Disconnecting from 91.108.56.152:443/TcpFull...
+2026-06-28 00:48:45,760 Disconnection from 91.108.56.152:443/TcpFull complete!
