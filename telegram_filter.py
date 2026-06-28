@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def load_config():
-    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+    with open(CONFIG_FILE, "r", encoding="utf-8-sig") as f:
         return json.load(f)
 
 
@@ -75,7 +75,7 @@ async def main():
     config = load_config()
 
     source_ids = config.get("source_chat_ids") or [config["source_chat_id"]]
-    target_id = config["target_chat_id"]
+    target_ids = config.get("target_chat_ids") or [config["target_chat_id"]]
     group_settings = config.get("group_settings", {})
 
     client = TelegramClient("session", config["api_id"], config["api_hash"])
@@ -85,7 +85,7 @@ async def main():
     me = await client.get_me()
     print(f"\n  Da dang nhap: {me.first_name} (@{me.username})")
     print(f"  Nghe tu     : {len(source_ids)} nhom")
-    print(f"  Gui vao     : {target_id}")
+    print(f"  Gui vao     : {target_ids}")
     if group_settings:
         print(f"  Cai dat rieng: {list(group_settings.keys())}")
     print("\n  Bot dang chay - san sang loc tin nhan...\n")
@@ -143,24 +143,24 @@ async def main():
             text = remove_links(text)
 
         # Forward
-        try:
-            if gs["forward_mode"] == "forward":
-                await client.forward_messages(target_id, msg)
-            else:
-                caption = f"[Tu: {sender_name}]\n{text}" if text else f"[Tu: {sender_name}]"
-                if has_media and gs["allow_media"]:
-                    await client.send_file(target_id, msg.media, caption=caption)
+        short = (text[:60] + "...") if len(text) > 60 else text
+        for target_id in target_ids:
+            try:
+                if gs["forward_mode"] == "forward":
+                    await client.forward_messages(target_id, msg)
                 else:
-                    await client.send_message(target_id, caption)
+                    caption = f"[Tu: {sender_name}]\n{text}" if text else f"[Tu: {sender_name}]"
+                    if has_media and gs["allow_media"]:
+                        await client.send_file(target_id, msg.media, caption=caption)
+                    else:
+                        await client.send_message(target_id, caption)
+            except Exception as e:
+                logger.error(f"LOI khi forward toi {target_id}: {e}")
 
-            short = (text[:60] + "...") if len(text) > 60 else text
-            print(f"  OK    | [{chat_id}] {sender_name}")
-            print(f"         | Keyword: {', '.join(matched)}")
-            print(f"         | Tin  : {short}\n")
-            logger.info(f"FORWARDED | chat={chat_id} | {sender_name} | keywords={matched}")
-
-        except Exception as e:
-            logger.error(f"LOI khi forward: {e}")
+        print(f"  OK    | [{chat_id}] {sender_name}")
+        print(f"         | Keyword: {', '.join(matched)}")
+        print(f"         | Tin  : {short}\n")
+        logger.info(f"FORWARDED | chat={chat_id} | {sender_name} | keywords={matched}")
 
     await client.run_until_disconnected()
 
