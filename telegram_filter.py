@@ -34,13 +34,15 @@ def load_config():
 def get_group_settings(config: dict, chat_id: int) -> dict:
     """Merge global settings with per-group overrides."""
     base = {
-        "keywords":     config.get("keywords", []),
+        "keywords":      config.get("keywords", []),
         "blocked_users": config.get("blocked_users", []),
         "allowed_users": config.get("allowed_users", []),
-        "block_links":  config.get("block_links", False),
-        "strip_links":  config.get("strip_links", False),
-        "allow_media":  config.get("allow_media", False),
-        "forward_mode": config.get("forward_mode", "copy"),
+        "allowed_names": config.get("allowed_names", []),
+        "block_links":   config.get("block_links", False),
+        "strip_links":   config.get("strip_links", False),
+        "allow_media":   config.get("allow_media", False),
+        "forward_mode":  config.get("forward_mode", "copy"),
+        "target_chat_ids": None,
     }
     override = config.get("group_settings", {}).get(str(chat_id), {})
     base.update(override)
@@ -113,9 +115,14 @@ async def main():
             logger.info(f"  SKIP (user bi chan): {sender_name} | chat={chat_id}")
             return
 
-        # Filter: allowed users whitelist
+        # Filter: allowed users whitelist (by username)
         if gs["allowed_users"] and sender_username and sender_username.lower() not in [a.lower() for a in gs["allowed_users"]]:
             logger.info(f"  SKIP (khong trong whitelist): {sender_name} | chat={chat_id}")
+            return
+
+        # Filter: allowed names whitelist (by display name)
+        if gs["allowed_names"] and sender_name.lower() not in [a.lower() for a in gs["allowed_names"]]:
+            logger.info(f"  SKIP (ten khong trong whitelist): {sender_name} | chat={chat_id}")
             return
 
         # Filter: media-only when not allowed
@@ -144,14 +151,18 @@ async def main():
 
         # Forward
         short = (text[:60] + "...") if len(text) > 60 else text
-        for target_id in target_ids:
+        for target_id in (gs["target_chat_ids"] or target_ids):
             try:
                 if gs["forward_mode"] == "forward":
                     await client.forward_messages(target_id, msg)
                 else:
                     caption = f"[Tu: {sender_name}]\n{text}" if text else f"[Tu: {sender_name}]"
                     if has_media and gs["allow_media"]:
-                        await client.send_file(target_id, msg.media, caption=caption)
+                        try:
+                            await client.send_file(target_id, msg.media, caption=caption)
+                        except Exception:
+                            notice = caption + "\n⚠️ [Co hinh anh nhung khong the copy]"
+                            await client.send_message(target_id, notice)
                     else:
                         await client.send_message(target_id, caption)
             except Exception as e:

@@ -3,5 +3,6 @@ venv/
 __pycache__/
 session*
 *.log
+filter_log.txt
 .env
 telegram_config.json
